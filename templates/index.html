@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex AI - Smart Study Planner & Schedule Generator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200 antialiased">
+    
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-slate-900/80 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-black text-xl">
+                    <i data-lucide="brain-circuit" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+                        Apex AI Study Planner
+                    </h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">Intelligent Cognitive Scheduling & Exam Prep</p>
+                </div>
+            </div>
+
+            <!-- Header Quick Actions -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button id="btnFocusMode" class="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-sm font-medium border border-indigo-500/30 flex items-center space-x-1.5 transition">
+                    <i data-lucide="timer" class="w-4 h-4 text-indigo-400"></i>
+                    <span>Pomodoro Timer</span>
+                </button>
+
+                <button id="btnExportIcal" class="hidden px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-sm font-medium border border-emerald-500/30 flex items-center space-x-1.5 transition" title="Export to Google/Apple Calendar">
+                    <i data-lucide="calendar-plus" class="w-4 h-4 text-emerald-400"></i>
+                    <span class="hidden md:inline">Sync to Calendar</span>
+                </button>
+
+                <button id="btnPrintPlan" class="hidden px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium border border-slate-700 flex items-center space-x-1.5 transition">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Print / PDF</span>
+                </button>
+
+                <button id="btnThemeToggle" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Toggle Theme">
+                    <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-300"></i>
+                    <i data-lucide="moon" class="w-4 h-4 block dark:hidden text-indigo-300"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        
+        <!-- Welcome Hero Banner -->
+        <section class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl">
+            <div class="relative z-10 max-w-3xl space-y-3">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold uppercase tracking-wider">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    <span>Powered by Python AI Optimization</span>
+                </div>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                    Master Your Exams with <span class="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">Science-Backed AI Scheduling</span>
+                </h2>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                    Input your subjects, exam deadlines, and daily available study time. Our Python cognitive engine calculates spaced repetition intervals, topic interleaving, and energy curve matching to generate your perfect timetable.
+                </p>
+                <div class="pt-2 flex flex-wrap gap-2 sm:gap-3">
+                    <button onclick="loadTemplate('engineering_cs')" class="text-xs bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition">
+                        <i data-lucide="code" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span>Computer Science Template</span>
+                    </button>
+                    <button onclick="loadTemplate('medical_mcat')" class="text-xs bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition">
+                        <i data-lucide="activity" class="w-3.5 h-3.5 text-rose-400"></i>
+                        <span>Pre-Med / Bio Template</span>
+                    </button>
+                    <button onclick="loadTemplate('highschool_stem')" class="text-xs bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition">
+                        <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <span>High School Finals</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Glow background decoration -->
+            <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute right-40 -top-20 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        </section>
+
+        <!-- Planner Configuration & Input Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left 2 Cols: Subjects & Exams Form -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Subjects Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                                <i data-lucide="book-open" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-100 text-lg">1. Subjects & Target Exams</h3>
+                                <p class="text-xs text-slate-400">Add the subjects you are studying along with exam dates and difficulty level.</p>
+                            </div>
+                        </div>
+                        <button onclick="addSubjectRow()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-lg shadow-cyan-600/20 transition">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Add Subject</span>
+                        </button>
+                    </div>
+
+                    <!-- Subject List Container -->
+                    <div id="subjectList" class="space-y-3.5">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Time Constraints & Study Habits Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+                    <div class="flex items-center space-x-3 border-b border-slate-800 pb-4">
+                        <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                            <i data-lucide="clock" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-100 text-lg">2. Time Availability & Constraints</h3>
+                            <p class="text-xs text-slate-400">Specify your study schedule, peak alertness times, and session durations.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <!-- Start Date -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium text-slate-300">Plan Start Date</label>
+                            <input type="date" id="inputStartDate" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                        </div>
+
+                        <!-- End Date -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium text-slate-300">Target End Date</label>
+                            <input type="date" id="inputEndDate" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                        </div>
+
+                        <!-- Daily Study Hours -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium text-slate-300 flex justify-between">
+                                <span>Daily Study Time:</span>
+                                <span id="lblDailyHours" class="text-cyan-400 font-bold">4.0 hrs/day</span>
+                            </label>
+                            <input type="range" id="inputDailyHours" min="1" max="12" step="0.5" value="4.0" class="w-full accent-cyan-500 cursor-pointer">
+                        </div>
+
+                        <!-- Peak Energy Window -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium text-slate-300">Peak Alertness Window</label>
+                            <select id="selectPeakTime" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                                <option value="morning">🌅 Morning (08:00 - 12:00)</option>
+                                <option value="afternoon">☀️ Afternoon (14:00 - 18:00)</option>
+                                <option value="evening" selected>🌆 Evening (19:00 - 23:00)</option>
+                                <option value="night">🌙 Night Owl (21:00 - 01:30)</option>
+                            </select>
+                        </div>
+
+                        <!-- Pomodoro Session Length -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium text-slate-300">Preferred Block Duration</label>
+                            <select id="selectSessionDuration" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                                <option value="30">30 min (Quick Sprints)</option>
+                                <option value="45" selected>45 min (Balanced Work)</option>
+                                <option value="60">60 min (Deep Flow)</option>
+                                <option value="90">90 min (Extended Focus)</option>
+                            </select>
+                        </div>
+
+                        <!-- Buffer Days before exams -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium text-slate-300">Pre-Exam Mock Buffer</label>
+                            <select id="selectBufferDays" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                                <option value="1">1 Day Buffer</option>
+                                <option value="2" selected>2 Days Revision Buffer</option>
+                                <option value="3">3 Days Extensive Mock Buffer</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Spaced Repetition Checkbox & Options -->
+                    <div class="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80">
+                        <label class="flex items-center space-x-2.5 cursor-pointer">
+                            <input type="checkbox" id="chkSpacedRepetition" checked class="w-4 h-4 text-cyan-600 rounded bg-slate-800 border-slate-700 focus:ring-cyan-500">
+                            <span class="text-xs text-slate-300">Enable <strong>Spaced Repetition</strong> (Auto-schedules Day+2 active recall)</span>
+                        </label>
+
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs text-slate-400">Max Subjects/Day:</span>
+                            <select id="selectMaxDailySubjects" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-200">
+                                <option value="2">2 Subjects (High Interleaving)</option>
+                                <option value="3" selected>3 Subjects (Optimal Balance)</option>
+                                <option value="4">4 Subjects (Fast Pace)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right 1 Col: AI Generator Action & Gemini Custom Advisor -->
+            <div class="space-y-6">
+                
+                <!-- Action Card -->
+                <div class="bg-gradient-to-b from-slate-900 to-indigo-950/40 border border-indigo-500/30 rounded-2xl p-6 shadow-2xl space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                            <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        </div>
+                        <h3 class="font-bold text-white text-lg">Generate Schedule</h3>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        The Python scheduler will balance subject weights, insert spaced repetition intervals, and generate your interactive day-by-day plan.
+                    </p>
+
+                    <!-- Optional Gemini API Key for deep analysis -->
+                    <div class="space-y-1.5 pt-2">
+                        <label class="text-xs font-medium text-slate-300 flex items-center justify-between">
+                            <span>Gemini API Key <span class="text-slate-500 text-[10px]">(Optional)</span></span>
+                            <span class="text-[10px] text-cyan-400">For Custom AI Insights</span>
+                        </label>
+                        <input type="password" id="inputApiKey" placeholder="AIzaSy... (Leave blank for built-in AI)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500">
+                    </div>
+
+                    <button id="btnGeneratePlan" onclick="generateSchedule()" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 flex items-center justify-center space-x-2 transition transform active:scale-95">
+                        <i data-lucide="zap" class="w-5 h-5"></i>
+                        <span>Generate AI Study Plan</span>
+                    </button>
+                    
+                    <div id="loadingIndicator" class="hidden text-center py-2">
+                        <div class="inline-flex items-center space-x-2 text-xs text-cyan-400">
+                            <svg class="animate-spin h-4 w-4 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+                            <span>Optimizing schedule constraints in Python...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Today's Quick Summary & Mission Widget -->
+                <div id="todayMissionCard" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-slate-200 text-sm flex items-center space-x-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Today's Study Mission</span>
+                        </h4>
+                        <span id="todayProgressBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">0/0 Done</span>
+                    </div>
+
+                    <div id="todayTaskList" class="space-y-2 max-h-52 overflow-y-auto pr-1">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Readiness Gauge Widget -->
+                <div id="readinessCard" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3 text-center">
+                    <h4 class="font-bold text-slate-300 text-xs uppercase tracking-wider">Projected Exam Readiness</h4>
+                    <div class="relative flex items-center justify-center my-2">
+                        <div class="text-3xl font-black text-white" id="readinessScoreVal">0%</div>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div id="readinessProgressBar" class="bg-gradient-to-r from-amber-500 via-emerald-500 to-cyan-400 h-2.5 rounded-full transition-all duration-700" style="width: 0%"></div>
+                    </div>
+                    <p id="readinessSummaryText" class="text-xs text-slate-400 leading-relaxed"></p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Generated Output Section (Initially Hidden until Generated) -->
+        <section id="resultsSection" class="hidden space-y-6 pt-4">
+            
+            <!-- Dashboard Tab Bar & Analytics Overview -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                
+                <!-- View Tabs & Export Controls -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="switchView('calendar')" id="tabBtnCalendar" class="px-4 py-2 rounded-xl text-sm font-semibold bg-cyan-600 text-white shadow-md shadow-cyan-600/20 flex items-center space-x-2 transition">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                            <span>Timetable Schedule</span>
+                        </button>
+                        <button onclick="switchView('analytics')" id="tabBtnAnalytics" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center space-x-2 transition">
+                            <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                            <span>Subject Analytics</span>
+                        </button>
+                        <button onclick="switchView('advice')" id="tabBtnAdvice" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center space-x-2 transition">
+                            <i data-lucide="lightbulb" class="w-4 h-4 text-amber-400"></i>
+                            <span>AI Strategy Advice</span>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="downloadCalendarFile()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center space-x-1.5 shadow-lg shadow-emerald-600/20 transition">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>Download .ICS (Google/Apple)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab 1: Calendar View -->
+                <div id="viewCalendar" class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+                            <i data-lucide="calendar-days" class="w-5 h-5 text-cyan-400"></i>
+                            <span>Your Optimized Daily Timetable</span>
+                        </h3>
+                        <div class="flex items-center space-x-2 text-xs text-slate-400">
+                            <span class="inline-block w-3 h-3 rounded-full bg-cyan-500"></span> Deep Study
+                            <span class="inline-block w-3 h-3 rounded-full bg-amber-500 ml-2"></span> Active Recall / Review
+                            <span class="inline-block w-3 h-3 rounded-full bg-rose-500 ml-2"></span> Exam Day
+                        </div>
+                    </div>
+
+                    <!-- Calendar Grid Container -->
+                    <div id="calendarGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Days populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Tab 2: Analytics View -->
+                <div id="viewAnalytics" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Chart: Hours per Subject -->
+                        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-3">
+                            <h4 class="font-bold text-slate-200 text-sm flex items-center space-x-2">
+                                <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i>
+                                <span>Subject Study Time Distribution</span>
+                            </h4>
+                            <div class="h-64 relative">
+                                <canvas id="chartSubjectBreakdown"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart: Daily Study Load -->
+                        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-3">
+                            <h4 class="font-bold text-slate-200 text-sm flex items-center space-x-2">
+                                <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-400"></i>
+                                <span>Planned Daily Workload (Hours)</span>
+                            </h4>
+                            <div class="h-64 relative">
+                                <canvas id="chartDailyLoad"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subject Breakdown Table -->
+                    <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-3 overflow-x-auto">
+                        <h4 class="font-bold text-slate-200 text-sm">Subject Allocation Details</h4>
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="border-b border-slate-800 text-slate-400 uppercase">
+                                <tr>
+                                    <th class="py-2.5 px-3">Subject</th>
+                                    <th class="py-2.5 px-3">Difficulty</th>
+                                    <th class="py-2.5 px-3">Confidence</th>
+                                    <th class="py-2.5 px-3">Planned Hours</th>
+                                    <th class="py-2.5 px-3">% Allocation</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subjectBreakdownTbody" class="divide-y divide-slate-800/60">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab 3: AI Advice & Cognitive Tactics View -->
+                <div id="viewAdvice" class="hidden space-y-6">
+                    <div id="aiAdviceContent" class="space-y-6">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Floating / Modal Focus Pomodoro Timer -->
+    <div id="pomodoroModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center space-y-6 relative">
+            <button onclick="closePomodoroModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-200 p-2">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="space-y-1">
+                <span class="text-xs uppercase tracking-widest text-indigo-400 font-bold" id="pomoModeLabel">Focus Session</span>
+                <h3 class="text-xl font-bold text-white" id="pomoSubjectTitle">Deep Work</h3>
+            </div>
+
+            <!-- Timer Circle Display -->
+            <div class="relative w-48 h-48 mx-auto flex items-center justify-center">
+                <div class="text-5xl font-mono font-black text-cyan-400 tracking-tight" id="pomoTimeDisplay">25:00</div>
+            </div>
+
+            <!-- Ambient Sound Generator -->
+            <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                <span class="text-slate-400 flex items-center space-x-1.5">
+                    <i data-lucide="headphones" class="w-4 h-4 text-indigo-400"></i>
+                    <span>Ambient Sound:</span>
+                </span>
+                <select id="pomoAmbientSelect" onchange="changeAmbientSound(this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-200">
+                    <option value="none">Off</option>
+                    <option value="rain">🌧️ Gentle Rain</option>
+                    <option value="whitenoise">💨 White Noise</option>
+                    <option value="binaural">🧘 Alpha Waves (Binaural)</option>
+                </select>
+            </div>
+
+            <!-- Timer Controls -->
+            <div class="flex items-center justify-center space-x-3">
+                <button id="btnPomoToggle" onclick="togglePomodoroTimer()" class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg flex items-center space-x-2 transition">
+                    <i data-lucide="play" id="pomoPlayIcon" class="w-5 h-5"></i>
+                    <span id="pomoBtnText">Start Focus</span>
+                </button>
+                <button onclick="resetPomodoroTimer()" class="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition" title="Reset Timer">
+                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Quick Modes -->
+            <div class="flex justify-center space-x-2 pt-2 text-xs">
+                <button onclick="setPomoDuration(25, 'Focus Session')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">25m Pomodoro</button>
+                <button onclick="setPomoDuration(50, 'Deep Work Block')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">50m Deep</button>
+                <button onclick="setPomoDuration(5, 'Short Break')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">5m Break</button>
+                <button onclick="setPomoDuration(15, 'Long Break')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">15m Break</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+        <p>Apex AI Study Planner • Core Python Scheduling Engine • Ready for VS Code & Cloud Deployment</p>
+    </footer>
+
+    <!-- App JavaScript -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
